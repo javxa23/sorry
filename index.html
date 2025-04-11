@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="mn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Уучлаарай хайр аа</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        font-family: "Arial", sans-serif;
+        background: linear-gradient(to top right, #fbc2eb, #a6c1ee);
+        background-attachment: fixed;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .center {
+        text-align: center;
+        z-index: 2;
+        position: relative;
+        width: 90%;
+        max-width: 500px;
+      }
+
+      .start-btn,
+      .forgive-btn {
+        padding: 15px 30px;
+        font-size: 1.2em;
+        border: none;
+        border-radius: 10px;
+        background: #ff69b4;
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s;
+      }
+
+      .start-btn:hover,
+      .forgive-btn:hover {
+        transform: scale(1.05);
+      }
+
+      .message {
+        font-size: 1.3em;
+        color: #fff;
+        margin: 20px 0;
+        display: none;
+        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.4);
+      }
+
+      .message.active {
+        display: block;
+        animation: fadeIn 1s ease-in-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .memory-container {
+        position: relative;
+        margin-top: 20px;
+        width: 100%;
+        max-width: 400px;
+        margin: 20px auto;
+      }
+
+      .memory {
+        display: none;
+        width: 100%;
+        text-align: center;
+        z-index: 3;
+      }
+
+      .memory img {
+        width: 100%;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        opacity: 0;
+        animation: fadeIn 2s ease-in forwards;
+      }
+
+      .memory p {
+        margin-top: 15px;
+        font-size: 1.2em;
+        color: #c9184a;
+        font-weight: bold;
+        opacity: 0;
+        animation: fadeIn 2s ease-in forwards;
+        animation-delay: 1s;
+      }
+
+      .date-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 2em;
+        font-weight: bold;
+        color: #fff;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 10px 20px;
+        border-radius: 10px;
+        z-index: 10;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+      }
+
+      @keyframes dateChange {
+        0% {
+          transform: translate(-50%, -50%) scale(1);
+        }
+        50% {
+          transform: translate(-50%, -50%) scale(1.1);
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(1);
+        }
+      }
+
+      /* Цэцэг унах эффект */
+      .flower {
+        position: fixed;
+        top: -50px;
+        z-index: 99;
+        font-size: 30px;
+        user-select: none;
+        pointer-events: none;
+        animation: flowerFall linear forwards;
+      }
+
+      @keyframes flowerFall {
+        0% {
+          transform: translateY(0) rotate(0deg);
+          opacity: 1;
+        }
+        80% {
+          opacity: 0.8;
+        }
+        100% {
+          transform: translateY(120vh) rotate(360deg);
+          opacity: 0;
+        }
+      }
+
+      /* Зүрх хөөрөх эффект */
+      .heart {
+        position: fixed;
+        bottom: -50px;
+        z-index: 99;
+        font-size: 30px;
+        user-select: none;
+        pointer-events: none;
+        animation: heartRise linear forwards;
+      }
+
+      @keyframes heartRise {
+        0% {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+        80% {
+          opacity: 0.7;
+        }
+        100% {
+          transform: translateY(-120vh) scale(0.5);
+          opacity: 0;
+        }
+      }
+
+      /* Элементүүдийн давхарга */
+      #emojis-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      /* GIF стайл */
+      .message-gif {
+        width: 200px;
+        height: auto;
+        margin: 10px auto;
+        border-radius: 10px;
+        display: block;
+      }
+
+      .button-gif {
+        width: 100px;
+        height: auto;
+        display: block;
+        margin: 0 auto 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Эмоджи агуулах контейнер -->
+    <div id="emojis-container"></div>
+
+    <div class="center">
+      <img
+        src="upvolume.gif"
+        id="volumeGif"
+        class="button-gif"
+        alt="Volume Up"
+      />
+      <button class="start-btn" id="startBtn">
+        Утасны дуугаа жаахан чангалаад эхлүүлээрэй🔊❤️
+      </button>
+
+      <div class="message" id="msg1">
+        <img src="mybad.gif" class="message-gif" alt="My Bad" />
+        Хайрыгаа үнэхээр их уучлаарай, хайрыгаа үнэхээр их гомдоосоон хайр нь😔
+      </div>
+
+      <div class="message" id="msg2">
+        <img src="princesslen.gif" class="message-gif" alt="Princess" />
+        Гүнжлэн минь миний амьдарлын хамгийн том аз жаргал юм шүү дээ👑💗
+      </div>
+
+      <div class="message" id="msg3">
+        <img src="sorry.gif" class="message-gif" alt="Sorry" />
+        Хайр нь хайраасаа юу ч нуухгүй ээ, алдаагаа маш сайн ойлгосоон 🙏
+      </div>
+
+      <div class="message" id="msg4">
+        <img src="us.gif" class="message-gif" alt="Us" />
+        Муухай зүйлээс бүрэн татгалзаж хамтдаа эрүүл амьдрах болноо 💞
+      </div>
+
+      <div class="message" id="msg5">
+        <img src="cry.gif" class="message-gif" alt="Crying" />
+        Хайрдаа ганц боломж олгооч гэж хичээнгүйлэн гуйж байна 😭🙇‍♂️
+      </div>
+
+      <button class="forgive-btn" id="forgiveBtn" style="display: none">
+        Гуйж байна намайг дараарай🫰❤️
+      </button>
+
+      <div class="memory-container">
+        <div class="memory" id="memory">
+          <img id="memoryImage" src="image1.jpeg" alt="Дурсамж" />
+          <p id="memoryText">Бидний анхны зураг 🥺💞</p>
+        </div>
+        <div id="dateText" class="date-text" style="display: none">
+          2022.02.11
+        </div>
+      </div>
+    </div>
+
+    <audio id="backgroundMusic" src="song.mp3" loop></audio>
+
+    <script>
+      const button = document.getElementById("startBtn");
+      const volumeGif = document.getElementById("volumeGif");
+      const messages = [
+        document.getElementById("msg1"),
+        document.getElementById("msg2"),
+        document.getElementById("msg3"),
+        document.getElementById("msg4"),
+        document.getElementById("msg5"),
+      ];
+      const forgiveBtn = document.getElementById("forgiveBtn");
+      const memory = document.getElementById("memory");
+      const memoryImage = document.getElementById("memoryImage");
+      const memoryText = document.getElementById("memoryText");
+      const dateText = document.getElementById("dateText");
+      const backgroundMusic = document.getElementById("backgroundMusic");
+      const emojisContainer = document.getElementById("emojis-container");
+
+      // Хэрэглэгчийн харилцаа үүсгэснээр дуу эхлүүлэх
+      document.addEventListener(
+        "click",
+        function () {
+          backgroundMusic
+            .play()
+            .catch((e) => console.log("Дууг эхлүүлэхэд алдаа гарлаа:", e));
+        },
+        { once: true }
+      );
+
+      button.addEventListener("click", () => {
+        button.style.display = "none";
+        volumeGif.style.display = "none"; // Hide the volume GIF when button is clicked
+
+        let index = 0;
+        const showMessage = () => {
+          if (index > 0) messages[index - 1].classList.remove("active");
+          if (index < messages.length) {
+            messages[index].classList.add("active");
+            index++;
+            setTimeout(showMessage, 5000);
+          } else {
+            setTimeout(() => {
+              forgiveBtn.style.display = "inline-block";
+            }, 1000);
+          }
+        };
+
+        showMessage();
+      });
+
+      // Цэцэг унагаах функц
+      function createFlower() {
+        const flower = document.createElement("div");
+        flower.className = "flower";
+        flower.innerHTML = "🌸";
+        flower.style.left = Math.random() * 100 + "vw";
+        flower.style.animationDuration = Math.random() * 3 + 5 + "s";
+        emojisContainer.appendChild(flower);
+
+        setTimeout(() => {
+          flower.remove();
+        }, 8000);
+      }
+
+      // Зүрх хөөргөх функц
+      function createHeart() {
+        const heart = document.createElement("div");
+        heart.className = "heart";
+        heart.innerHTML = "❤️";
+        heart.style.left = Math.random() * 100 + "vw";
+        heart.style.animationDuration = Math.random() * 3 + 6 + "s";
+        emojisContainer.appendChild(heart);
+
+        setTimeout(() => {
+          heart.remove();
+        }, 9000);
+      }
+
+      let flowerInterval;
+      let heartInterval;
+
+      forgiveBtn.addEventListener("click", () => {
+        forgiveBtn.style.display = "none";
+        memory.style.display = "block";
+        dateText.style.display = "block";
+        if (navigator.vibrate) {
+          navigator.vibrate([200, 100, 200]);
+        }
+
+        // Эхлэх огноо
+        let startDate = new Date(2022, 1, 11); // 2022.02.11
+        let endDate = new Date(2025, 3, 11); // 2025.04.11 (JavaScript сар 0-ээс эхэлдэг)
+        let totalTime = 6000; // 3 секунд
+        let startTime = Date.now();
+
+        function updateDate() {
+          let now = Date.now();
+          let progress = Math.min((now - startTime) / totalTime, 1);
+
+          if (progress < 1) {
+            // Хугацааны дагуу огноог шилжүүлэх
+            let currentTimestamp =
+              startDate.getTime() +
+              progress * (endDate.getTime() - startDate.getTime());
+            let currentDate = new Date(currentTimestamp);
+
+            let year = currentDate.getFullYear();
+            let month = currentDate.getMonth() + 1; // JavaScript сар 0-ээс эхэлдэг
+            let day = currentDate.getDate();
+
+            // Огноо форматлах
+            dateText.innerText = `${year}.${month
+              .toString()
+              .padStart(2, "0")}.${day.toString().padStart(2, "0")}`;
+
+            // Анимэйшн
+            dateText.style.animation = "dateChange 0.6s ease";
+            setTimeout(() => {
+              dateText.style.animation = "";
+            }, 300);
+
+            requestAnimationFrame(updateDate);
+          } else {
+            // Хугацаа дууссан - эцсийн огноо
+            const date = new Date();
+
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0"); // Сарын индекс нь 0-с эхэлдэг
+            const day = String(date.getDate()).padStart(2, "0");
+
+            dateText.innerText = `${year}.${month}.${day}`;
+
+            // Хамт байсан хоногийн тоог тооцоолох
+            const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+            const daysBetween = Math.round(
+              Math.abs((endDate - startDate) / oneDay)
+            );
+
+            // Зураг солих
+            memoryImage.src = "image2.jpg";
+            memoryText.innerText = `Бид ${daysBetween} өдрийг хамтдаа өнгөрүүлсэн байна💞. Үүрд хамтдаа баймаар байна😭🥺. Өдийг хүртэл хайрыгаа тоож хайрлаж байгаа хайрдаа үнэхээр их баярлалаа хайр нь илүү сайн хичээх болноо💗`;
+          }
+        }
+
+        updateDate();
+      });
+      // Эффект эхлүүлэх - шууд эхний тоо бүтээх
+      createFlower();
+      createHeart();
+
+      // Тогтмол хугацаанд шинэ эмоджи үүсгэх
+      flowerInterval = setInterval(createFlower, 800);
+      heartInterval = setInterval(createHeart, 1200);
+    </script>
+  </body>
+</html>
